@@ -1,0 +1,26 @@
+{
+  "name": "insta-like",
+  "version": "1.0.0",
+  "description": "API do instagram para ganhar seguidores",
+  "main": "./bin/server.js",
+  "scripts": {
+    "start": "nodemon ./bin/server.js"
+  },
+  "engines": {
+    "node": ">=8.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kadupenido/insta-like.git"
+  },
+  "author": "Carlos Eduardo Penido",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^1.12.5"
+  },
+  "dependencies": {
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "instagram-private-api": "^0.6.7"
+  }
+}
