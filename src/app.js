@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
+var bodyParser = require('body-parser');
 //const mongoose = require('mongoose');
 //const config = require('./config/config');
-
-//const morgan = require('morgan');
 //const debug = require('debug')('');
 
 const app = express();
@@ -25,14 +25,19 @@ app.use(cors());
 // });
 
 //log requests
-//app.use(morgan('dev'));
+app.use(morgan('dev'));
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 //Carrega as rotas
 const mainRoute = require('./app-router');
+const authRoute = require('./auth/auth-router');
 
 //app.use(bodyParser.json());
 //app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/', mainRoute);
+app.use('/auth', authRoute);
 
 module.exports = app;
