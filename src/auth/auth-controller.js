@@ -1,14 +1,27 @@
-exports.authenticate = async (req, res, next) => {
+var Client = require('instagram-private-api').V1;
+var authService = require('./auth-service');
 
+exports.authenticate = async (req, res, next) => {
     try {
 
-        var Client = require('instagram-private-api').V1;
-        var device = new Client.Device('someuser');
-        var storage = new Client.CookieFileStorage(__dirname + '/cookies/someuser.json');
+        const user = req.body.user;
+        const password = req.body.password;
+        
+        const device = new Client.Device(user);
+        const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + user + '.json');
+        const session = await Client.Session.create(device, storage, user, password);
 
-        res.status(200).send();
+        const token = await authService.generateToken({ user: user });
+
+        res.status(200).send({
+            token: token
+        });
 
     } catch (e) {
-        res.status(500).send(e);
+        res.status(401).send(e.message);
     }
+}
+
+exports.getSession = async () => {
+
 }

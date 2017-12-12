@@ -1,16 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-var bodyParser = require('body-parser');
-//const mongoose = require('mongoose');
-//const config = require('./config/config');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const config = require('./config');
 //const debug = require('debug')('');
 
 const app = express();
 const router = express.Router();
 
 //Carrega o banco
-//mongoose.connect(config.connStr, { useMongoClient: true });
+mongoose.connect(config.connStr, { useMongoClient: true });
 
 //Carrega as models
 //const VideoUploadModel = require('./upload-video/video-upload-model');
@@ -33,11 +33,13 @@ app.use(bodyParser.json())
 //Carrega as rotas
 const mainRoute = require('./app-router');
 const authRoute = require('./auth/auth-router');
+const userRoute = require('./user/user-router');
 
 //app.use(bodyParser.json());
 //app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/', mainRoute);
 app.use('/auth', authRoute);
+app.use('/user', userRoute);
 
 module.exports = app;

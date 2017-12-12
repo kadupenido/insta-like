@@ -24,6 +24,8 @@
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "instagram-private-api": "^0.6.7",
+    "jsonwebtoken": "^8.1.0",
+    "mongoose": "^4.13.7",
     "morgan": "^1.9.0"
   }
 }
