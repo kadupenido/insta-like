@@ -1,17 +1,12 @@
-var Client = require('instagram-private-api').V1;
 var authService = require('./auth-service');
 
 exports.authenticate = async (req, res, next) => {
     try {
 
-        const user = req.body.user;
-        const password = req.body.password;
-        
-        const device = new Client.Device(user);
-        const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + user + '.json');
-        const session = await Client.Session.create(device, storage, user, password);
-
-        const token = await authService.generateToken({ user: user });
+        const token = await authService.generateToken({
+            user: req.body.user,
+            password: req.body.password
+        });
 
         res.status(200).send({
             token: token
@@ -22,6 +17,15 @@ exports.authenticate = async (req, res, next) => {
     }
 }
 
-exports.getSession = async () => {
+exports.authorize = async (req, res, next) => {
 
+    const token = req.body.token || req.query.token || req.headers['x-access-token'];
+    const auth = await authService.authorize(token);
+
+    if (auth.success) {
+        req.session = auth.session;
+        next();
+    } else {
+        res.status(401).send(auth.message);
+    }
 }

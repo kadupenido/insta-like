@@ -1,32 +1,56 @@
 var jwt = require('jsonwebtoken');
 var config = require('../config');
+var Client = require('instagram-private-api').V1;
 
 exports.generateToken = async (data) => {
-    return jwt.sign(data, config.privateKey);
+
+    const device = new Client.Device(data.user);
+    const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + data.user + '.json');
+    const session = await Client.Session.create(device, storage, data.user, data.password);
+
+    return jwt.sign(data.user, config.privateKey);
 }
 
 exports.decodeToken = async (token) => {
     return jwt.verify(token, config.privateKey);
 }
 
-exports.authorize = async (req, res, next) => {
-
-    const token = req.body.token || req.query.token || req.headers['x-access-token'];
+exports.authorize = async (token) => {
 
     if (token) {
-        jwt.verify(token, config.privateKey, (error, decoded) => {
+        return jwt.verify(token, config.privateKey, async (error, decoded) => {
             if (error) {
-                res.status(401).send({
-                    message: 'token inválido.'
-                });
+                return {
+                    success: false,
+                    message: 'Token inválido.'
+                }
             } else {
-                req.decoded = decoded;
-                next();
+
+                try {
+                    const device = new Client.Device(decoded);
+                    const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + decoded + '.json');
+                    const session = new Client.Session(device, storage);
+
+                    const accountId = await session.getAccountId();
+
+                    return {
+                        success: true,
+                        session: session
+                    }
+
+                } catch (e) {
+
+                    return {
+                        success: false,
+                        message: 'Sessão inválida.'
+                    }
+                }
             }
         });
     } else {
-        res.status(401).send({
+        return {
+            success: false,
             message: 'Acesso restrito.'
-        });
+        }
     }
 }
