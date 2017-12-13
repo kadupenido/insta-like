@@ -34,12 +34,11 @@ app.use(bodyParser.json())
 const mainRoute = require('./app-router');
 const authRoute = require('./auth/auth-router');
 const userRoute = require('./user/user-router');
-
-//app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded({ extended: false }));
+const followRoute = require('./follow/follow-router');
 
 app.use('/', mainRoute);
 app.use('/auth', authRoute);
 app.use('/user', userRoute);
+app.use('/follow', followRoute);
 
 module.exports = app;
