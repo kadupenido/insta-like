@@ -1,10 +1,12 @@
 var Follow = require('./follow-model');
 
 exports.createUser = (userId, userFollowerId) => {
+
     const newUser = Follow({
         userId: userId,
         userFollowerId: userFollowerId,
-        following: true
+        following: true,
+        followAt: new Date()
     });
 
     return newUser.save((err) => {
@@ -12,8 +14,8 @@ exports.createUser = (userId, userFollowerId) => {
     });
 }
 
-exports.followedOnce = (userId, userFollowerId) => {
-    return User.find({ userId: userId, userFollowerId: userFollowerId }, (err, follow) => {
+exports.followedOnce = async (userId, userFollowerId) => {
+    return await Follow.findOne({ userId: userId, userFollowerId: userFollowerId }, (err, follow) => {
         if (err) throw err;
 
         return follow;
