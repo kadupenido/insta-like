@@ -11,6 +11,8 @@ exports.createUser = (userId, userFollowerId) => {
 
     return newUser.save((err) => {
         if (err) throw err;
+
+        return true;
     });
 }
 
