@@ -9,13 +9,6 @@ var followSchema = new Schema({
     unfollowAt: { type: Date, required: false },
 });
 
-// followSchema.pre('save', (next) => {
-//     if (!this.followAt) {
-//         this.followAt = new Date();
-//     }
-//     next();
-// });
-
 var Follow = mongoose.model('Follow', followSchema);
 
 module.exports = Follow;
