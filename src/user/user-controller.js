@@ -11,9 +11,14 @@ exports.getMyInfo = async (req, res, next) => {
         //const me2 = await Client.Account.getById(session, 10912739);
         //const rel = await Client.Relationship.get(session, 10912739)
         //const feed = new Client.Feed.AccountFollowers(session, accountId, 100);
-        const loc = await Client.Location.search(session, '');
-        const locFeed = new Client.Feed.LocationMedia(session, loc.id, 20);
+        // const loc = await Client.Location.search(session, 'cervejario');
+        // const locFeed = new Client.Feed.LocationMedia(session, loc.id, 20);
+        // const media = await locFeed.all();
+
+        var hash = await Client.Hashtag.info(session, 'homebrew');
+        const locFeed = new Client.Feed.TaggedMedia(session, 'homebrew', 20);
         const media = await locFeed.all();
+        //17842289734067549
         
         res.status(200).send();
 

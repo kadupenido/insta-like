@@ -23,3 +23,26 @@ exports.followedOnce = async (userId, userFollowerId) => {
         return follow;
     });
 }
+
+exports.getFollowing = async (userId) => {
+
+    return await Follow.find({ userId: userId, following: true }, (err, follow) => {
+        if (err) throw err;
+
+        return follow;
+    });
+
+}
+
+exports.delete = async (userId, userFollowerId) => {
+
+    return await Follow.findOneAndRemove({ userId: userId, userFollowerId: userFollowerId }, (err) => {
+        if (err) throw err;
+    });
+}
+
+exports.unfollow = async (userId, userFollowerId) => {
+    return await Follow.findOneAndUpdate({ userId: userId, userFollowerId: userFollowerId }, { $set: { following: false } }, (err) => {
+        if (err) throw err;
+    });
+}
