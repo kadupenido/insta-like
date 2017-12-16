@@ -22,7 +22,7 @@ exports.authorize = async (token) => {
             if (error) {
                 return {
                     success: false,
-                    message: 'Token inválido.'
+                    message: 'Invalid token.'
                 }
             } else {
 
@@ -42,7 +42,7 @@ exports.authorize = async (token) => {
 
                     return {
                         success: false,
-                        message: 'Sessão inválida.'
+                        message: 'Invalid session.'
                     }
                 }
             }
@@ -50,7 +50,7 @@ exports.authorize = async (token) => {
     } else {
         return {
             success: false,
-            message: 'Acesso restrito.'
+            message: 'Restrict access.'
         }
     }
 }

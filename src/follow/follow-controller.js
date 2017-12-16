@@ -3,79 +3,79 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var followProvider = require('./follow-provider');
 
-var bugs = [];
-
-exports.followEndLikeByLocation = async (req, res, next) => {
+exports.followEndLike = async (req, res, next) => {
 
     try {
 
         const session = req.session;
         const accountId = await session.getAccountId();
-        //const feed = new Client.Feed.LocationMedia(session, req.body.locationId, 1000);
-        const feed = new Client.Feed.TaggedMedia(session, req.body.locationId, 1000);
+        const amountFollow = req.body.amountFollow;
 
-        const qtdeSeguir = req.body.amountOfFollow;
-        let qtdeJaSeguiu = 0;
+        let feed;
+        let amountFollowed = 0;
         let index = 0;
 
-        bugs = [];
+        switch (req.body.by) {
+          case 'location':
+            feed = new Client.Feed.LocationMedia(session, req.body.locationId, 1000);
+            break;
+
+          case "hashtag":
+            feed = new Client.Feed.TaggedMedia(session, req.body.tag, 1000);
+            break;
+
+          default:
+            res.status(500).send({ message: "Invalid by." });
+            return;
+            break;
+        }
 
         let data = await feed.get();
-        seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+        seguir(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
 
     } catch (error) {
         res.status(500).send(error.message);
     }
 }
 
-function seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir) {
+function follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow) {
 
     //Se já seguiu a qtde solicitada para a execução
-    if (qtdeJaSeguiu >= qtdeSeguir) {
-        console.log('Fim da solicitação');
-        //fixBugs(accountId);
-        res.status(200).send();
+    if (amountFollowed >= amountFollow) {
+        console.log('End request.');
+        res.status(200).send({ message: 'End request.' });
         return;
     }
 
     //Se não tiver mais dados suficientes, busca mais
     if (index >= data.length) {
-
-        console.log('Buscando mais dados');
-
         try {
+
+            console.log('Find data');
 
             if (!feed.isMoreAvailable()) {
 
-                console.log('Fim dos dados');
-
-                //fixBugs(accountId);
-
-                res.status(200).send({
-                    message: 'Fim dos dados'
-                });
-
+                console.log('No more data');
+                res.status(200).send({ message: 'No more data' });
                 return;
             }
 
             feed.get().then((newData) => {
 
-                console.log('Novos dados carregados');
+                console.log('New data loaded');
                 console.log('');
 
                 data = newData;
                 index = 0;
-                seguir(session, res, feed, data, index++, accountId, qtdeJaSeguiu, qtdeSeguir);
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
 
             }, (err) => {
                 console.error(err);
-                //fixBugs(accountId);
                 res.status(500).send(err);
             });
 
         } catch (error) {
             console.error(error);
-            //fixBugs(accountId);
             res.status(500).send(error);
         }
 
@@ -89,7 +89,7 @@ function seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSe
         console.log('*** ', e.account.params.fullName || e.account.params.username, ' ***');
         console.log('');
         index++;
-        seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
         return;
     }
 
@@ -102,15 +102,10 @@ function seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSe
             if (follow.following) {
                 console.log('BUG: ', e.account.params.fullName || e.account.params.username, ' (', e.account.id, ')');
                 console.log('');
-
-                bugs.push({
-                    id: e.account.id,
-                    remover: !follow.unfollowAt
-                });
             }
 
             index++;
-            seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+            follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
             return;
         }
 
@@ -119,48 +114,48 @@ function seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSe
         //Segue no instagram
         Client.Relationship.create(session, e.account.id).then((rel) => {
 
-            console.log('Seguindo');
+            console.log('Following.');
 
             //Marca no banco que seguiu
             followProvider.createUser(accountId, e.account.id).then(() => {
 
-                console.log('DB atualizada');
+                console.log('Updated database.');
 
                 //Marca a qntde ja seguida
-                qtdeJaSeguiu++;
+                amountFollowed++;
 
                 //Curte a foto
                 Client.Like.create(session, e.id).then((like) => {
 
-                    console.log('Foto curtida');
+                    console.log('Liked photo.');
                     console.log('');
 
                     index++;
-                    seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+                    follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
 
                 }, (err) => {
                     console.error(err);
                     index++;
-                    seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+                    follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
                 });
 
             }, (err) => {
                 console.error(err);
                 index++;
-                seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
             });
 
         }, (err) => {
             console.error(err);
             index++;
-            seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+            follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
         })
 
 
     }, (err) => {
         console.error(err);
         index++;
-        seguir(session, res, feed, data, index, accountId, qtdeJaSeguiu, qtdeSeguir);
+        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
     });
 }
 
@@ -170,21 +165,20 @@ exports.fixFollowBugs = async (req, res, next) => {
 
         const session = req.session;
         const accountId = await session.getAccountId();
-
         const follows = await followProvider.getFollowing(accountId);
 
         for (let i = 0; i < follows.length; i++) {
-            const e = follows[i];
 
+            const e = follows[i];
             const rel = await Client.Relationship.get(session, e.userFollowerId);
 
+            console.log('');
             console.log(e.userFollowerId);
 
             if (!rel.params.following) {
                 await followProvider.delete(accountId, e.userFollowerId);
                 console.log('Remove: ', e.userFollowerId);
             }
-
         }
 
         res.status(200).send({
@@ -195,29 +189,3 @@ exports.fixFollowBugs = async (req, res, next) => {
         res.status(500).send(error.message);
     }
 }
-
-// function fixBugs(accountId) {
-//     if (bugs.length == 0) {
-//         return;
-//     }
-
-//     console.log('Bugs: ', bugs.length);
-
-//     for (let i = 0; i < bugs.length; i++) {
-//         const e = bugs[i];
-
-//         if (e.remover) {
-//             followProvider.delete(accountId, e.id).then(() => {
-//                 console.log('Bug fixed: ', e.id);
-//             }, (err) => {
-//                 console.error(err);
-//             });
-//         } else {
-//             followProvider.unfollow(accountId, e.id).then(() => {
-//                 console.log('Bug fixed: ', e.id);
-//             }, (err) => {
-//                 console.error(err);
-//             });
-//         }
-//     }
-// }
