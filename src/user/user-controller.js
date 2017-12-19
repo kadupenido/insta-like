@@ -7,11 +7,11 @@ exports.getMyInfo = async (req, res, next) => {
         const session = req.session;
         const accountId = await session.getAccountId();
         
-        //const me = await Client.Account.showProfile(session);
+        const me = await Client.Account.showProfile(session);
         //const me2 = await Client.Account.getById(session, 10912739);
         //const rel = await Client.Relationship.get(session, 10912739)
         //const feed = new Client.Feed.AccountFollowers(session, accountId, 100);
-         const loc = await Client.Location.search(session, 'experimente');
+        //const loc = await Client.Location.search(session, 'experimente');
         // const locFeed = new Client.Feed.LocationMedia(session, loc.id, 20);
         // const media = await locFeed.all();
 
@@ -20,7 +20,7 @@ exports.getMyInfo = async (req, res, next) => {
         //const media = await locFeed.all();
         //17842289734067549
         
-        res.status(200).send();
+        res.status(200).send(me);
 
     } catch (error) {
         res.status(500).send(error.message);

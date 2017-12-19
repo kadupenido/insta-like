@@ -16,18 +16,18 @@ exports.followEndLike = async (req, res, next) => {
         let index = 0;
 
         switch (req.body.by) {
-        case "location":
-            feed = new Client.Feed.LocationMedia(session, req.body.locationId, 1000);
-            break;
+            case "location":
+                feed = new Client.Feed.LocationMedia(session, req.body.locationId, 1000);
+                break;
 
-        case "hashtag":
-            feed = new Client.Feed.TaggedMedia(session, req.body.tag, 1000);
-            break;
+            case "hashtag":
+                feed = new Client.Feed.TaggedMedia(session, req.body.tag, 1000);
+                break;
 
-        default:
-            res.status(500).send({ message: "Invalid by." });
-            return;
-            break;
+            default:
+                res.status(500).send({ message: "Invalid by." });
+                return;
+                break;
         }
 
         let data = await feed.get();
@@ -36,6 +36,34 @@ exports.followEndLike = async (req, res, next) => {
         res.status(500).send(error.message);
     }
 };
+
+exports.fixFollowBugs = async (req, res, next) => {
+    try {
+        const session = req.session;
+        const accountId = await session.getAccountId();
+        const follows = await followProvider.getFollowing(accountId);
+
+        for (let i = 0; i < follows.length; i++) {
+            const e = follows[i];
+            const rel = await Client.Relationship.get(session, e.userFollowerId);
+
+            console.log("");
+            console.log(e.userFollowerId);
+
+            if (!rel.params.following) {
+                await followProvider.delete(accountId, e.userFollowerId);
+                console.log("Remove: ", e.userFollowerId);
+            }
+        }
+
+        res.status(200).send({
+            message: "Bugs fixed"
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
 
 function follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow) {
     //Se já seguiu a qtde solicitada para a execução
@@ -113,22 +141,22 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
 
             //Segue no instagram
             Client.Relationship.create(session, e.account.id).then((rel) => {
-              console.log("Following.");
+                console.log("Following.");
 
-              //Marca no banco que seguiu
-              followProvider.createUser(accountId, e.account.id).then(() => {
-                  console.log("Updated database.");
+                //Marca no banco que seguiu
+                followProvider.createUser(accountId, e.account.id).then(() => {
+                    console.log("Updated database.");
 
-                  //Marca a qntde ja seguida
-                  amountFollowed++;
+                    //Marca a qntde ja seguida
+                    amountFollowed++;
 
-                  //Curte a foto
-                  Client.Like.create(session, e.id).then((like) => {
-                      console.log("Liked photo.");
-                      console.log("");
+                    //Curte a foto
+                    Client.Like.create(session, e.id).then((like) => {
+                        console.log("Liked photo.");
+                        console.log("");
 
-                      index++;
-                      follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                        index++;
+                        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
                     }, (err) => {
                         console.error(err);
 
@@ -163,17 +191,17 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
                 follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
             });
         })
-        .catch(err => {
-          console.error(err);
+            .catch(err => {
+                console.error(err);
 
-          if (err instanceof exceptions.RequestsLimitError) {
-            res.status(500).send({ message: err.message });
-            return;
-          }
+                if (err instanceof exceptions.RequestsLimitError) {
+                    res.status(500).send({ message: err.message });
+                    return;
+                }
 
-          index++;
-          follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
-        });
+                index++;
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+            });
     }, (err) => {
         console.error(err);
 
@@ -186,30 +214,3 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
         follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
     });
 }
-
-exports.fixFollowBugs = async (req, res, next) => {
-  try {
-    const session = req.session;
-    const accountId = await session.getAccountId();
-    const follows = await followProvider.getFollowing(accountId);
-
-    for (let i = 0; i < follows.length; i++) {
-      const e = follows[i];
-      const rel = await Client.Relationship.get(session, e.userFollowerId);
-
-      console.log("");
-      console.log(e.userFollowerId);
-
-      if (!rel.params.following) {
-        await followProvider.delete(accountId, e.userFollowerId);
-        console.log("Remove: ", e.userFollowerId);
-      }
-    }
-
-    res.status(200).send({
-      message: "Bugs fixed"
-    });
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-};
