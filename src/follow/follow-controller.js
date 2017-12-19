@@ -214,3 +214,73 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
         follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
     });
 }
+
+exports.unfollow = async (req, res, next) => {
+    try {
+        const session = req.session;
+        const accountId = await session.getAccountId();
+        const follows = await followProvider.getFollowing(accountId);
+
+        const dateToUnfollow = req.params.dateToUnfollow;
+        const following = req.params.following;
+
+        let index = 0;
+
+        unfollow()
+
+        for (let i = 0; i < follows.length; i++) {
+            const e = follows[i];
+            
+            
+
+            
+
+            // if (!rel.params.following) {
+            //     await followProvider.delete(accountId, e.userFollowerId);
+            //     console.log("Remove: ", e.userFollowerId);
+            // }
+        }
+
+        
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+function unfollow(follows, index) {
+
+    if (index >= follows.length) {
+        res.status(200).send({ message: "End request." });
+        return;
+    }
+
+    const e = follows[index];
+
+    Client.Relationship.get(session, e.userFollowerId).then((rel) => {
+
+        if (following && rel.params.followed_by) {
+            console.log('Ainda não segue de volta');
+            index++;
+            unfollow(follows, index);
+        }
+
+        Client.Account.getById(session, e.userFollowerId).then((friend) => {
+
+            console.log("");
+            console.log(friend.params.fullName);
+            console.log(rel.params);
+
+            res.status(200).send({ message: "End request." });
+
+
+        }, (err) => {
+            console.error(err);
+            res.status(500).send(err);
+        });
+
+    }, (err) => {
+        console.error(err);
+        res.status(500).send(err);
+    });
+
+}
