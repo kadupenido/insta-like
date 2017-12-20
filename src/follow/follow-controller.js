@@ -64,7 +64,6 @@ exports.fixFollowBugs = async (req, res, next) => {
     }
 };
 
-
 function follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow) {
     //Se já seguiu a qtde solicitada para a execução
     if (amountFollowed >= amountFollow) {
@@ -221,33 +220,19 @@ exports.unfollow = async (req, res, next) => {
         const accountId = await session.getAccountId();
         const follows = await followProvider.getFollowing(accountId);
 
-        const dateToUnfollow = req.params.dateToUnfollow;
-        const following = req.params.following;
+        const dateToUnfollow = new Date(req.body.dateToUnfollow);
+        const followedBy = req.body.followedBy;
 
         let index = 0;
 
-        unfollow()
+        unfollow(res, session, follows, index, dateToUnfollow, followedBy);
 
-        for (let i = 0; i < follows.length; i++) {
-            const e = follows[i];
-            
-            
-
-            
-
-            // if (!rel.params.following) {
-            //     await followProvider.delete(accountId, e.userFollowerId);
-            //     console.log("Remove: ", e.userFollowerId);
-            // }
-        }
-
-        
     } catch (error) {
         res.status(500).send(error.message);
     }
 };
 
-function unfollow(follows, index) {
+function unfollow(res, session, follows, index, dateToUnfollow, followedBy) {
 
     if (index >= follows.length) {
         res.status(200).send({ message: "End request." });
@@ -256,31 +241,70 @@ function unfollow(follows, index) {
 
     const e = follows[index];
 
+    console.log("");
+    console.log(index + 1, '/', follows.length);
+    console.log('*** ', e.userFollowerId, "***");
+
+    //Busca a amizade
     Client.Relationship.get(session, e.userFollowerId).then((rel) => {
 
-        if (following && rel.params.followed_by) {
-            console.log('Ainda não segue de volta');
-            index++;
-            unfollow(follows, index);
+        //Remove possiveis bugs
+        if (!rel.params.following) {
+
+            console.log("BUG");
+
+            followProvider.unfollow(e.userId, e.userFollowerId).then(() => {
+                console.log("DB atualizada.");
+                index++;
+                unfollow(res, session, follows, index, dateToUnfollow, followedBy);
+
+            }, (err) => {
+                console.error(err);
+                index++;
+                unfollow(res, session, follows, index, dateToUnfollow, followedBy);
+            });
+
+            return;
         }
 
-        Client.Account.getById(session, e.userFollowerId).then((friend) => {
+        //Checa se deve dar unfollow
+        if ((followedBy && !rel.params.followed_by) || (dateToUnfollow && e.followAt < dateToUnfollow)) {
 
-            console.log("");
-            console.log(friend.params.fullName);
-            console.log(rel.params);
+            console.log("Não deve dar unfollow");
 
-            res.status(200).send({ message: "End request." });
+            index++;
+            unfollow(res, session, follows, index, dateToUnfollow, followedBy);
+            return;
+        }
 
+        //Da unfollow no instagram
+        Client.Relationship.destroy(session, e.userFollowerId).then((relStatus) => {
+
+            console.log("unfollow no instagram.");
+
+            //Atualiza o banco
+            followProvider.unfollow(e.userId, e.userFollowerId).then(() => {
+
+                console.log("DB atualizada.");
+
+                index++;
+                unfollow(res, session, follows, index, dateToUnfollow, followedBy);
+
+            }, (err) => {
+                console.error(err);
+                index++;
+                unfollow(res, session, follows, index, dateToUnfollow, followedBy);
+            });
 
         }, (err) => {
             console.error(err);
-            res.status(500).send(err);
+            index++;
+            unfollow(res, session, follows, index, dateToUnfollow, followedBy);
         });
 
     }, (err) => {
         console.error(err);
-        res.status(500).send(err);
+        index++;
+        unfollow(res, session, follows, index, dateToUnfollow, followedBy);
     });
-
 }

@@ -42,7 +42,15 @@ exports.delete = async (userId, userFollowerId) => {
 }
 
 exports.unfollow = async (userId, userFollowerId) => {
-    return await Follow.findOneAndUpdate({ userId: userId, userFollowerId: userFollowerId }, { $set: { following: false } }, (err) => {
-        if (err) throw err;
-    });
+    return await Follow.findOneAndUpdate({
+        userId: userId,
+        userFollowerId: userFollowerId
+    }, {
+            $set: {
+                following: false,
+                unfollowAt: new Date()
+            }
+        }, (err) => {
+            if (err) throw err;
+        });
 }
