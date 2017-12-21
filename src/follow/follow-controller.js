@@ -245,6 +245,16 @@ function unfollow(res, session, follows, index, dateToUnfollow, followedBy) {
     console.log(index + 1, '/', follows.length);
     console.log('*** ', e.userFollowerId, "***");
 
+    //Checa se deve dar unfollow
+    if (dateToUnfollow && e.followAt < dateToUnfollow) {
+
+        console.log("Não deve dar unfollow");
+
+        index++;
+        unfollow(res, session, follows, index, dateToUnfollow, followedBy);
+        return;
+    }
+
     //Busca a amizade
     Client.Relationship.get(session, e.userFollowerId).then((rel) => {
 
@@ -268,7 +278,7 @@ function unfollow(res, session, follows, index, dateToUnfollow, followedBy) {
         }
 
         //Checa se deve dar unfollow
-        if ((followedBy && !rel.params.followed_by) || (dateToUnfollow && e.followAt < dateToUnfollow)) {
+        if (followedBy && !rel.params.followed_by) {
 
             console.log("Não deve dar unfollow");
 
