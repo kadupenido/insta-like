@@ -10,6 +10,7 @@ exports.followEndLike = async (req, res, next) => {
         const session = req.session;
         const accountId = await session.getAccountId();
         const amountFollow = req.body.amountFollow;
+        const gender = req.body.gender;
 
         let feed;
         let amountFollowed = 0;
@@ -31,7 +32,7 @@ exports.followEndLike = async (req, res, next) => {
         }
 
         let data = await feed.get();
-        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -64,7 +65,7 @@ exports.fixFollowBugs = async (req, res, next) => {
     }
 };
 
-function follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow) {
+function follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender) {
     //Se já seguiu a qtde solicitada para a execução
     if (amountFollowed >= amountFollow) {
         console.log("End request.");
@@ -90,7 +91,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
 
                 data = newData;
                 index = 0;
-                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
             }, (err) => {
                 console.error(err);
                 res.status(500).send(err);
@@ -111,7 +112,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
         console.log("*** ", e.account.params.fullName || e.account.params.username, " ***");
         console.log("");
         index++;
-        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
         return;
     }
 
@@ -125,16 +126,17 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
             }
 
             index++;
-            follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+            follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
             return;
         }
 
         console.log("*** ", e.account.params.fullName || e.account.params.username, " ***");
 
-        genderService.isFemale(e.account.params.fullName || e.account.params.username).then((isFemale) => {
-            if (!isFemale) {
+        genderService.getGender(e.account.params.fullName || e.account.params.username).then((resGender) => {
+
+            if (gender && gender != resGender) {
                 index++;
-                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
                 return;
             }
 
@@ -155,7 +157,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
                         console.log("");
 
                         index++;
-                        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
                     }, (err) => {
                         console.error(err);
 
@@ -165,7 +167,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
                         }
 
                         index++;
-                        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
                     });
                 }, (err) => {
                     console.error(err);
@@ -176,7 +178,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
                     }
 
                     index++;
-                    follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                    follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
                 });
             }, (err) => {
                 console.error(err);
@@ -187,7 +189,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
                 }
 
                 index++;
-                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
             });
         })
             .catch(err => {
@@ -199,7 +201,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
                 }
 
                 index++;
-                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+                follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
             });
     }, (err) => {
         console.error(err);
@@ -210,7 +212,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
         }
 
         index++;
-        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow);
+        follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
     });
 }
 
@@ -308,12 +310,24 @@ function unfollow(res, session, follows, index, dateToUnfollow, followedBy) {
 
         }, (err) => {
             console.error(err);
+
+            if (err instanceof exceptions.RequestsLimitError) {
+                res.status(500).send({ message: err.message });
+                return;
+            }
+
             index++;
             unfollow(res, session, follows, index, dateToUnfollow, followedBy);
         });
 
     }, (err) => {
         console.error(err);
+
+        if (err instanceof exceptions.RequestsLimitError) {
+            res.status(500).send({ message: err.message });
+            return;
+        }
+
         index++;
         unfollow(res, session, follows, index, dateToUnfollow, followedBy);
     });
