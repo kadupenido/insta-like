@@ -109,7 +109,7 @@ function follow(session, res, feed, data, index, accountId, amountFollowed, amou
 
     //Se ja segue pula pro proximo
     if (e.account.params.friendshipStatus.following) {
-        console.log("*** ", e.account.params.fullName || e.account.params.username, " ***");
+        console.log("*** ", e.account.params.fullName || e.account.params.username, " *** Já segue");
         console.log("");
         index++;
         follow(session, res, feed, data, index, accountId, amountFollowed, amountFollow, gender);
