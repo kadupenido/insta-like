@@ -8,12 +8,13 @@ exports.authenticate = async (req, res, next) => {
             password: req.body.password
         });
 
-        res.status(200).send({
-            token: token
-        });
+        res.status(200).send(token);
 
     } catch (e) {
-        res.status(401).send(e.message);
+        res.status(401).send({
+            success: false,
+            message: e || e.message
+        });
     }
 }
 
@@ -26,6 +27,9 @@ exports.authorize = async (req, res, next) => {
         req.session = auth.session;
         next();
     } else {
-        res.status(401).send(auth.message);
+        res.status(401).send({
+            success: false,
+            message: auth.message
+        });
     }
 }

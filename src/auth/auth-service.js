@@ -8,7 +8,10 @@ exports.generateToken = async (data) => {
     const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + data.user + '.json');
     const session = await Client.Session.create(device, storage, data.user, data.password);
 
-    return jwt.sign(data.user, config.privateKey);
+    return {
+        token: jwt.sign({ data: data.user }, config.privateKey, { expiresIn: '1d' }),
+        expiresIn: '1d'
+    };
 }
 
 exports.decodeToken = async (token) => {
