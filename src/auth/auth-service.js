@@ -30,8 +30,8 @@ exports.authorize = async (token) => {
             } else {
 
                 try {
-                    const device = new Client.Device(decoded);
-                    const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + decoded + '.json');
+                    const device = new Client.Device(decoded.data);
+                    const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + decoded.data + '.json');
                     const session = new Client.Session(device, storage);
 
                     const accountId = await session.getAccountId();
