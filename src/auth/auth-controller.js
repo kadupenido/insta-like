@@ -19,9 +19,8 @@ exports.authenticate = async (req, res, next) => {
 }
 
 exports.authorize = async (req, res, next) => {
-
-    const token = req.body.token || req.query.token || req.headers['x-access-token'];
-    const auth = await authService.authorize(token);
+    
+    const auth = await authService.authorize(req.token);
 
     if (auth.success) {
         req.session = auth.session;

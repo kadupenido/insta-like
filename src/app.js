@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const config = require('./config');
+const bearerToken = require('express-bearer-token');
 //const debug = require('debug')('');
 
 const app = express();
@@ -27,6 +28,10 @@ app.use(cors());
 //log requests
 app.use(morgan('dev'));
 
+//bearer
+app.use(bearerToken());
+
+//Body Parser
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
