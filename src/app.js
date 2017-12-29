@@ -40,12 +40,14 @@ const mainRoute = require('./app-router');
 const authRoute = require('./auth/auth-router');
 const userRoute = require('./user/user-router');
 const followRoute = require('./follow/follow-router');
+const unfollowRoute = require('./unfollow/unfollow-router');
 const locationRouter = require('./location/location-router');
 
 app.use('/', mainRoute);
 app.use('/auth', authRoute);
 app.use('/user', userRoute);
 app.use('/follow', followRoute);
+app.use('/unfollow', unfollowRoute);
 app.use('/location', locationRouter);
 
 module.exports = app;

@@ -38,7 +38,8 @@ exports.authorize = async (token) => {
 
                     return {
                         success: true,
-                        session: session
+                        session: session,
+                        accountId: accountId
                     }
 
                 } catch (e) {

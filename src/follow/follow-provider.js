@@ -24,9 +24,17 @@ exports.followedOnce = async (userId, userFollowerId) => {
     });
 }
 
-exports.getFollowing = async (userId) => {
+exports.getFollowing = async (userId, followAt) => {
 
-    return await Follow.find({ userId: userId, following: true }, (err, follow) => {
+    var query = Follow.find({ userId: userId, following: true });
+
+    if (followAt) {
+        query.and([{ followAt: { $lte: followAt } }]);
+    }
+
+    query.select('userId userFollowerId followAt');
+
+    return await query.exec((err, follow) => {
         if (err) throw err;
 
         return follow;

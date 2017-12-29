@@ -24,6 +24,7 @@ exports.authorize = async (req, res, next) => {
 
     if (auth.success) {
         req.session = auth.session;
+        req.accountId = auth.accountId;
         next();
     } else {
         res.status(401).send({
