@@ -335,17 +335,17 @@ function unfollow(res, session, follows, index, dateToUnfollow, followedBy) {
 
 exports.getFollowing = async (req, res, next) => {
     try {
-        
+
         const session = req.session;
-    const accountId = await session.getAccountId();
+        const accountId = await session.getAccountId();
 
-    const followAt = req.body.followAt ? Date.parse(req.body.followAt) : null;
-    const follows = await followProvider.getFollowing(accountId, followAt);
+        const followAt = req.body.followAt ? Date.parse(req.body.followAt) : null;
+        const follows = await followProvider.getFollowing(accountId, followAt);
 
-    res.status(200).send({
-        success: true,
-        data: follows
-    });
+        res.status(200).send({
+            success: true,
+            data: follows
+        });
 
     } catch (e) {
         res.status(500).send({

@@ -6,11 +6,18 @@ exports.generateToken = async (data) => {
 
     const device = new Client.Device(data.user);
     const storage = new Client.CookieFileStorage(__dirname + '/cookies/' + data.user + '.json');
-    const session = await Client.Session.create(device, storage, data.user, data.password);
+    const session = new Client.Session(device, storage);
+    
+    const resDestroy = await session.destroy();
+    const newSession = await Client.Session.create(device, storage, data.user, data.password);
+
+    const token = jwt.sign({ data: data.user }, config.privateKey, { expiresIn: '1d' });
+    let exp = new Date();
+    exp.setDate(exp.getDate() + 1);
 
     return {
-        token: jwt.sign({ data: data.user }, config.privateKey, { expiresIn: '1d' }),
-        expiresIn: '1d'
+        token: token,
+        exp: exp
     };
 }
 

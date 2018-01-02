@@ -91,6 +91,7 @@ function addUserId(res, medias, index, data, cursor, gender) {
     if (data.includes(account.id)) {
         index++;
         addUserId(res, medias, index, data, cursor, gender);
+        return;
     }
 
     if (gender) {
@@ -101,10 +102,12 @@ function addUserId(res, medias, index, data, cursor, gender) {
 
             index++;
             addUserId(res, medias, index, data, cursor, gender);
+            return;
 
         }, (e) => {
             index++;
             addUserId(res, medias, index, data, cursor, gender);
+            return;
         });
 
         return;
@@ -113,4 +116,5 @@ function addUserId(res, medias, index, data, cursor, gender) {
     data.push(account.id);
     index++;
     addUserId(res, medias, index, data, cursor, gender);
+    return;
 }
