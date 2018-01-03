@@ -1,6 +1,6 @@
 var cluster = require('cluster');
 
-if (cluster.isMaster && false) {
+if (cluster.isMaster) {
 
     const cpuCount = require('os').cpus().length;
 
