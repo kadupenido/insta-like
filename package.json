@@ -4,8 +4,8 @@
   "description": "API do instagram para ganhar seguidores",
   "main": "./bin/server.js",
   "scripts": {
-    "start": "nodemon ./bin/server.js",
-    "debug": "node ./bin/server.js"
+    "start": "node ./bin/server.js",
+    "debug": "nodemon ./bin/server.js"
   },
   "engines": {
     "node": "8.9.1"
