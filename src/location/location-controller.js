@@ -1,7 +1,7 @@
 var Client = require('instagram-private-api').V1;
 var genderService = require("../gender/gender-service");
 
-exports.getLocations = async (req, res, next) => {
+exports.getLocationsByName = async (req, res, next) => {
 
     try {
 
@@ -40,7 +40,7 @@ exports.getLocations = async (req, res, next) => {
     }
 }
 
-exports.getUsersByLocationMedia = async (req, res, next) => {
+exports.getUsersByLocation = async (req, res, next) => {
     try {
 
         const session = req.session;
