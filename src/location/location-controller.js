@@ -118,3 +118,53 @@ function addUserId(res, medias, index, data, cursor, gender) {
     addUserId(res, medias, index, data, cursor, gender);
     return;
 }
+
+exports.getMediaByLocation = async (req, res, next) => {
+
+    try {
+        
+        const session = req.session;
+        const locationId = req.body.locationId;
+        const cursor = req.body.cursor;
+
+        const feed = new Client.Feed.LocationMedia(session, locationId, 12);
+
+        if (cursor) {
+            feed.setCursor(cursor);
+        }
+
+        feed.get().then((medias) => {
+
+            let data = [];
+
+            for (let i = 0; i < medias.length; i++) {
+                const media = medias[i].params;
+                data.push({
+                    id: media.id,
+                    caption: media.caption,
+                    url: media.images[0].url,
+                    likeCount: media.likeCount
+                });
+            }
+
+            res.status(200).send({
+                success: true,
+                cursor: feed.getCursor(),
+                data: data
+            });
+
+        }, (e) => {
+            res.status(500).send({
+                success: false,
+                message: e.message || e
+            });
+        });
+
+    } catch (e) {
+        res.status(500).send({
+            success: false,
+            message: e.message || e
+        });
+    }
+
+}
