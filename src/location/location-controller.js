@@ -21,20 +21,15 @@ exports.getLocationsByName = async (req, res, next) => {
                 });
             }
 
-            res.status(500).send({
-                success: true,
-                data: data
-            });
+            res.status(200).send(data);
 
         }, (e) => {
             res.status(500).send({
-                success: false,
                 message: e.message || e
             });
         });
     } catch (e) {
         res.status(500).send({
-            success: false,
             message: e.message || e
         });
     }
@@ -148,21 +143,18 @@ exports.getMediaByLocation = async (req, res, next) => {
             }
 
             res.status(200).send({
-                success: true,
                 cursor: feed.getCursor(),
                 data: data
             });
 
         }, (e) => {
             res.status(500).send({
-                success: false,
                 message: e.message || e
             });
         });
 
     } catch (e) {
         res.status(500).send({
-            success: false,
             message: e.message || e
         });
     }
